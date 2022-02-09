@@ -217,6 +217,9 @@ if (isElectron()) {
   var uploadsDir = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + 'Library/Preferences' : '/var/local')
 }
 var jobStartTime = false;
+var jobPauseTime = false;
+var jobPausedDuration = false;
+
 var jobCompletedMsg = ""; // message sent when job is done
 var uploadedgcode = ""; // var to store uploaded gcode
 var uploadedworkspace = ""; // var to store uploaded OpenBuildsCAM Workspace
@@ -1947,6 +1950,9 @@ function runJob(object) {
   // }
 
   jobStartTime = false;
+  jobPauseTime = false;
+  jobPausedDuration = false;
+  
   var data = object.data
 
   if (object.isJob) {
@@ -2954,6 +2960,7 @@ function pause() {
         }
         break;
     }
+    jobPauseTime = new Date().getTime();
     status.comms.runStatus = 'Paused';
     status.comms.connectionStatus = 4;
   } else {
@@ -2975,6 +2982,7 @@ function unpause() {
     setTimeout(function() {
       send1Q(); // restart queue
     }, 200);
+    jobPausedDuration += new Date().getTime() - jobPauseTime;
     status.comms.runStatus = 'Resuming';
     status.comms.connectionStatus = 3;
   } else {
